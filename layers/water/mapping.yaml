@@ -87,3 +87,21 @@ tables:
       - ditch
       - dock
     type: polygon
+
+  # etldoc: imposm3 -> osm_waterisland_polygon
+  waterisland_polygon:
+    type: polygon
+    fields:
+    - name: osm_id
+      type: id
+    - name: geometry
+      type: geometry
+    - name: area
+      type: area
+    - name: webmerc_area
+      type: webmerc_area
+    mapping:
+      place:
+      - island
+      - islet
+

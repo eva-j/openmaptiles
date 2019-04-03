@@ -21,6 +21,7 @@ layer:
   datasource:
     query: (SELECT geometry, class FROM layer_water(!bbox!, z(!scale_denominator!))) AS t
 schema:
+  - ./update_water_polygon.sql
   - ./water.sql
 datasources:
   - type: imposm3
