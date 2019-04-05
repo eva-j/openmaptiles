@@ -2,54 +2,60 @@
 CREATE OR REPLACE FUNCTION update_osm_water_polygon() RETURNS VOID AS $$
 BEGIN
 
+  CREATE TABLE osm_waterisland_s_polygon AS
+  SELECT id, (ST_DUMP(geometry)).geom::geometry(Polygon,3857) AS geometry
+    FROM osm_waterisland_polygon;
+
+  DROP TABLE osm_waterisland_polygon CASCADE;
+
   UPDATE osm_water_polygon w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
+  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Union(i.geometry)
+                                        FROM osm_waterisland_s_polygon i
+                                        WHERE ST_Intersects(w.geometry, i.geometry)
+                                                  )), w.geometry);
   ANALYZE osm_water_polygon;
 
-  UPDATE osm_water_polygon_gen1 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen1;
-
-  UPDATE osm_water_polygon_gen2 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen2;
-
-  UPDATE osm_water_polygon_gen3 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen3;
-
-  UPDATE osm_water_polygon_gen4 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen4;
-
-  UPDATE osm_water_polygon_gen5 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen5;
-
-  UPDATE osm_water_polygon_gen6 w
-  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
-                                         FROM osm_waterisland_polygon i
-                                         WHERE ST_Intersects(w.geometry, i.geometry)
-                                         )), w.geometry);
-  ANALYZE osm_water_polygon_gen6;
+--  UPDATE osm_water_polygon_gen1 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen1;
+--
+--  UPDATE osm_water_polygon_gen2 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen2;
+--
+--  UPDATE osm_water_polygon_gen3 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen3;
+--
+--  UPDATE osm_water_polygon_gen4 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen4;
+--
+--  UPDATE osm_water_polygon_gen5 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen5;
+--
+--  UPDATE osm_water_polygon_gen6 w
+--  SET geometry=COALESCE(ST_Difference(w.geometry, (SELECT ST_Collect(i.geometry) 
+--                                         FROM osm_waterisland_polygon i
+--                                         WHERE ST_Intersects(w.geometry, i.geometry)
+--                                         )), w.geometry);
+--  ANALYZE osm_water_polygon_gen6;
 
 END;
 $$ LANGUAGE plpgsql;
