@@ -1,5 +1,6 @@
 DROP TRIGGER IF EXISTS trigger_flag ON osm_housenumber_point;
 DROP TRIGGER IF EXISTS trigger_store ON osm_housenumber_point;
+DROP TRIGGER IF EXISTS trigger_store ON osm_housenumber_polygon;
 DROP TRIGGER IF EXISTS trigger_refresh ON housenumber.updates;
 
 CREATE SCHEMA IF NOT EXISTS housenumber;
@@ -10,32 +11,28 @@ CREATE TABLE IF NOT EXISTS housenumber.osm_ids
 );
 
 -- etldoc: osm_housenumber_point -> osm_housenumber_point
+-- etldoc: osm_housenumber_polygon -> osm_housenumber_point
 CREATE OR REPLACE FUNCTION convert_housenumber_point(full_update boolean) RETURNS void AS
 $$
     -- Delete housenumber duplicates
-    DELETE FROM osm_housenumber_point
-    WHERE osm_id IN (
-      SELECT pt.osm_id
-      FROM osm_housenumber_point pt
-      INNER JOIN osm_housenumber_point poly
-      ON (ST_GeometryType(poly.geometry) <> 'ST_Point'
-          AND ST_GeometryType(pt.geometry) = 'ST_Point'
-          AND pt.geometry && poly.geometry
+    DELETE FROM osm_housenumber_point pt
+    USING osm_housenumber_polygon poly
+    WHERE pt.geometry && poly.geometry
           AND pt.housenumber = poly.housenumber
-          AND (full_update OR pt.osm_id IN (SELECT osm_id FROM housenumber.osm_ids))
-      )
-    );
+          AND (full_update OR pt.osm_id IN (SELECT osm_id FROM housenumber.osm_ids));
 
-    UPDATE osm_housenumber_point
-    SET geometry =
+    INSERT INTO osm_housenumber_point (osm_id, housenumber, geometry)
+        (SELECT 
+            osm_id,
+            housenumber,
             CASE
                 WHEN ST_NPoints(ST_ConvexHull(geometry)) = ST_NPoints(geometry)
                     THEN ST_Centroid(geometry)
                 ELSE ST_PointOnSurface(geometry)
-                END
-    WHERE (full_update OR osm_id IN (SELECT osm_id FROM housenumber.osm_ids))
-        AND ST_GeometryType(geometry) <> 'ST_Point'
-        AND ST_IsValid(geometry);
+            END AS geometry
+        FROM osm_housenumber_polygon
+        WHERE ST_IsValid(geometry)
+            AND (full_update OR osm_id IN (SELECT osm_id FROM housenumber.osm_ids)));
 $$ LANGUAGE SQL;
 
 SELECT convert_housenumber_point(true);
@@ -91,9 +88,15 @@ CREATE TRIGGER trigger_store
     FOR EACH ROW
 EXECUTE PROCEDURE housenumber.store();
 
+CREATE TRIGGER trigger_store
+    AFTER INSERT OR UPDATE OR DELETE
+    ON osm_housenumber_polygon
+    FOR EACH ROW
+EXECUTE PROCEDURE housenumber.store();
+
 CREATE TRIGGER trigger_flag
     AFTER INSERT OR UPDATE OR DELETE
-    ON osm_housenumber_point
+    ON osm_housenumber_polygon
     FOR EACH STATEMENT
 EXECUTE PROCEDURE housenumber.flag();
 

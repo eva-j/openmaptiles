@@ -16,6 +16,19 @@ tables:
       points:
         addr:housenumber:
         - __any__
+
+  # etldoc: imposm3 -> osm_housenumber_polygon
+  housenumber_polygon:
+    type: geometry
+    columns:
+    - name: osm_id
+      type: id
+    - name: geometry
+      type: geometry
+    - name: housenumber
+      key: addr:housenumber
+      type: string
+    type_mappings:
       polygons:
         addr:housenumber:
         - __any__
