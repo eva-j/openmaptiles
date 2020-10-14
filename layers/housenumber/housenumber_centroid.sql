@@ -1,4 +1,5 @@
 DROP TRIGGER IF EXISTS trigger_flag ON osm_housenumber_point;
+DROP TRIGGER IF EXISTS trigger_flag ON osm_housenumber_polygon;
 DROP TRIGGER IF EXISTS trigger_store ON osm_housenumber_point;
 DROP TRIGGER IF EXISTS trigger_store ON osm_housenumber_polygon;
 DROP TRIGGER IF EXISTS trigger_refresh ON housenumber.updates;
