@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS housenumber.osm_ids
     osm_id bigint
 );
 
+CREATE INDEX IF NOT EXISTS osm_housenumber_polygon_geometry_idx ON osm_housenumber_polygon USING gist (geometry);
+CREATE INDEX IF NOT EXISTS osm_housenumber_point_geometry_idx ON osm_housenumber_point USING gist (geometry);
+
+
 -- etldoc: osm_housenumber_point -> osm_housenumber_point
 -- etldoc: osm_housenumber_polygon -> osm_housenumber_point
 CREATE OR REPLACE FUNCTION convert_housenumber_point(full_update boolean) RETURNS void AS
