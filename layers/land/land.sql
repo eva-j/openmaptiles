@@ -1,41 +1,41 @@
 CREATE OR REPLACE VIEW land_z0 AS
 (
--- etldoc:  osm_land_polygon_gen4 ->  land_z0
+-- etldoc:  ne_110m_land ->  land_z0
 SELECT geometry,
        'land'::text AS class
-FROM osm_land_polygon_gen4
+FROM ne_110m_land
     );
 
 CREATE OR REPLACE VIEW land_z1 AS
 (
--- etldoc:  osm_land_polygon_gen4 ->  land_z1
+-- etldoc:  ne_110m_land ->  land_z1
 SELECT geometry,
        'land'::text AS class
-FROM osm_land_polygon_gen4
+FROM ne_110m_land
     );
 
 CREATE OR REPLACE VIEW land_z2 AS
 (
--- etldoc:  osm_land_polygon_gen4 ->  land_z2
+-- etldoc:  ne_50m_land ->  land_z2
 SELECT geometry,
        'land'::text AS class
-FROM osm_land_polygon_gen4
+FROM ne_50m_land
     );
 
 CREATE OR REPLACE VIEW land_z4 AS
 (
--- etldoc:  osm_land_polygon_gen4 ->  land_z4
+-- etldoc:  ne_50m_land ->  land_z4
 SELECT geometry,
        'land'::text AS class
-FROM osm_land_polygon_gen4
+FROM ne_50m_land
     );
 
 CREATE OR REPLACE VIEW land_z5 AS
 (
--- etldoc:  osm_land_polygon_gen4 ->  land_z5
+-- etldoc:  ne_10m_land ->  land_z5
 SELECT geometry,
        'land'::text AS class
-FROM osm_land_polygon_gen4
+FROM ne_10m_land
     );
 
 CREATE OR REPLACE VIEW land_z6 AS

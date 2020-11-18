@@ -2,15 +2,15 @@
 -- etldoc: osm_land_polygon -> osm_land_polygon_union
 CREATE TABLE IF NOT EXISTS osm_land_polygon_union AS
     (
-    SELECT (ST_Dump(ST_Union(ST_MakeValid(geom)))).geom::geometry(Polygon, 3857) AS geometry 
+    SELECT (ST_Dump(ST_Union(ST_MakeValid(geometry)))).geom::geometry(Polygon, 3857) AS geometry 
     FROM osm_land_polygon
     --for union select just full square (not big triangles)
-    WHERE ST_Area(geom) > 100000000 AND 
-          ST_NPoints(geom) = 5
+    WHERE ST_Area(geometry) > 100000000 AND 
+          ST_NPoints(geometry) = 5
     UNION ALL
-    SELECT geom AS geometry 
+    SELECT geometry 
     FROM osm_land_polygon
-    WHERE ST_NPoints(geom) <> 5
+    WHERE ST_NPoints(geometry) <> 5
     );
 
 CREATE INDEX IF NOT EXISTS osm_land_polygon_union_geom_idx
