@@ -1,21 +1,27 @@
 -- ne_10m_land
+
+ALTER TABLE ne_10m_land ADD COLUMN IF NOT EXISTS fid SERIAL;
+
 -- etldoc:  ne_10m_land ->  ne_10m_land_gen_z5
 DROP MATERIALIZED VIEW IF EXISTS ne_10m_land_gen_z5 CASCADE;
 CREATE MATERIALIZED VIEW ne_10m_land_gen_z5 AS
 (
-SELECT ST_Simplify(geometry, ZRes(7)) AS geometry,
+SELECT fid,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(7))) AS geometry,
        'land'::text AS class
 FROM ne_10m_land
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS ne_10m_land_gen_z5_idx ON ne_10m_land_gen_z5 USING gist (geometry);
 
+
 -- ne_50m_land
+
 -- etldoc:  ne_50m_land ->  ne_50m_land_gen_z4
 DROP MATERIALIZED VIEW IF EXISTS ne_50m_land_gen_z4 CASCADE;
 CREATE MATERIALIZED VIEW ne_50m_land_gen_z4 AS
 (
 SELECT ogc_fid,
-       ST_Simplify(geometry, ZRes(6)) AS geometry,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(6))) AS geometry,
        'land'::text AS class
 FROM ne_50m_land
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
@@ -26,7 +32,7 @@ DROP MATERIALIZED VIEW IF EXISTS ne_50m_land_gen_z3 CASCADE;
 CREATE MATERIALIZED VIEW ne_50m_land_gen_z3 AS
 (
 SELECT ogc_fid,
-       ST_Simplify(geometry, ZRes(5)) AS geometry,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(5))) AS geometry,
        class
 FROM ne_50m_land_gen_z4
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
@@ -37,13 +43,25 @@ DROP MATERIALIZED VIEW IF EXISTS ne_50m_land_gen_z2 CASCADE;
 CREATE MATERIALIZED VIEW ne_50m_land_gen_z2 AS
 (
 SELECT ogc_fid,
-       ST_Simplify(geometry, ZRes(4)) AS geometry,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(4))) AS geometry,
        class
 FROM ne_50m_land_gen_z3
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS ne_50m_land_gen_z2_idx ON ne_50m_land_gen_z2 USING gist (geometry);
 
+
 -- ne_110m_land
+
+DROP VIEW IF EXISTS ne_110m_land_notvalid CASCADE;
+CREATE VIEW ne_110m_land_notvalid AS
+(
+SELECT ogc_fid,
+       geometry,
+       'land'::text AS class
+FROM ne_110m_land
+WHERE NOT ST_IsValid(geometry)
+    );
+
 -- etldoc:  ne_110m_land ->  ne_110m_land_gen_z1
 DROP MATERIALIZED VIEW IF EXISTS ne_110m_land_gen_z1 CASCADE;
 CREATE MATERIALIZED VIEW ne_110m_land_gen_z1 AS
@@ -68,45 +86,80 @@ CREATE INDEX IF NOT EXISTS ne_110m_land_gen_z0_idx ON ne_110m_land_gen_z0 USING 
 
 
 
-
+-- etldoc:  ne_110m_land_gen_z0 ->  land_z0
+-- etldoc:  ne_110m_lakes_gen_z0 ->  land_z0
 CREATE OR REPLACE VIEW land_z0 AS
 (
--- etldoc:  ne_110m_land_gen_z0 ->  land_z0
-SELECT geometry,
-       'land'::text AS class
-FROM ne_110m_land_gen_z0
+WITH temp AS
+    (
+    SELECT l.ogc_fid, ST_Union(w.geometry) AS geometry
+    FROM ne_110m_land_gen_z0 l JOIN ne_110m_lakes_gen_z0 w ON ST_Intersects(w.geometry, l.geometry)
+    GROUP BY l.ogc_fid
+    )
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+       l.class
+FROM ne_110m_land_gen_z0 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
+-- etldoc:  ne_110m_land_gen_z1 ->  land_z1
+-- etldoc:  ne_110m_lakes_gen_z1 ->  land_z1
 CREATE OR REPLACE VIEW land_z1 AS
 (
--- etldoc:  ne_110m_land_gen_z1 ->  land_z1
-SELECT geometry,
-       'land'::text AS class
-FROM ne_110m_land_gen_z1
+WITH temp AS
+    (
+    SELECT l.ogc_fid, ST_Union(w.geometry) AS geometry
+    FROM ne_110m_land_gen_z1 l JOIN ne_110m_lakes_gen_z1 w ON ST_Intersects(w.geometry, l.geometry)
+    GROUP BY l.ogc_fid
+    )
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+       l.class
+FROM ne_110m_land_gen_z1 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
+-- etldoc:  ne_50m_land_gen_z2 ->  land_z2
+-- etldoc:  ne_50m_lakes_gen_z2 ->  land_z2
 CREATE OR REPLACE VIEW land_z2 AS
 (
--- etldoc:  ne_50m_land ->  land_z2
-SELECT geometry,
-       'land'::text AS class
-FROM ne_50m_land
+WITH temp AS
+    (
+    SELECT l.ogc_fid, ST_Union(w.geometry) AS geometry
+    FROM ne_50m_land_gen_z2 l JOIN ne_50m_lakes_gen_z2 w ON ST_Intersects(w.geometry, l.geometry)
+    GROUP BY l.ogc_fid
+    )
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+       l.class
+FROM ne_50m_land_gen_z2 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
+-- etldoc:  ne_50m_land_gen_z3 ->  land_z3
+-- etldoc:  ne_50m_lakes_gen_z3 ->  land_z3
 CREATE OR REPLACE VIEW land_z3 AS
 (
--- etldoc:  ne_50m_land ->  land_z3
-SELECT geometry,
-       'land'::text AS class
-FROM ne_50m_land
+WITH temp AS
+    (
+    SELECT l.ogc_fid, ST_Union(w.geometry) AS geometry
+    FROM ne_50m_land_gen_z3 l JOIN ne_50m_lakes_gen_z3 w ON ST_Intersects(w.geometry, l.geometry)
+    GROUP BY l.ogc_fid
+    )
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+       l.class
+FROM ne_50m_land_gen_z3 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
+-- etldoc:  ne_50m_land_gen_z4 ->  land_z4
+-- etldoc:  ne_10m_lakes_gen_z4 ->  land_z4
 CREATE OR REPLACE VIEW land_z4 AS
 (
--- etldoc:  ne_50m_land ->  land_z4
-SELECT geometry,
-       'land'::text AS class
-FROM ne_50m_land
+WITH temp AS
+    (
+    SELECT l.ogc_fid, ST_Union(w.geometry) AS geometry
+    FROM ne_50m_land_gen_z4 l JOIN ne_10m_lakes_gen_z4 w ON ST_Intersects(w.geometry, l.geometry)
+    WHERE ST_GeometryType(w.geometry) IN ('ST_MultiPolygon','ST_Polygon')
+    GROUP BY l.ogc_fid
+    )
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+       l.class
+FROM ne_50m_land_gen_z4 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
 CREATE OR REPLACE VIEW land_z5 AS
