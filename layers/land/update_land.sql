@@ -34,7 +34,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z11 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z11 AS
 (
-SELECT ST_Simplify(geometry, ZRes(13)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(13))) AS geometry, fid
 FROM osm_land_polygon
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z11_idx ON osm_land_polygon_gen_z11 USING gist (geometry);
@@ -54,7 +54,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z10 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z10 AS
 (
-SELECT ST_Simplify(geometry, ZRes(12)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(12))) AS geometry, fid
 FROM osm_land_polygon_gen_z11
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z10_idx ON osm_land_polygon_gen_z10 USING gist (geometry);
@@ -74,7 +74,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z9 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z9 AS
 (
-SELECT ST_Simplify(geometry, ZRes(11)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(11))) AS geometry, fid
 FROM osm_land_polygon_gen_z10
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z9_idx ON osm_land_polygon_gen_z9 USING gist (geometry);
@@ -94,7 +94,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z8 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z8 AS
 (
-SELECT ST_Simplify(geometry, ZRes(10)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(10))) AS geometry, fid
 FROM osm_land_polygon_gen_z9
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z8_idx ON osm_land_polygon_gen_z8 USING gist (geometry);
@@ -114,7 +114,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z7 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z7 AS
 (
-SELECT ST_Simplify(geometry, ZRes(9)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(9))) AS geometry, fid
 FROM osm_land_polygon_gen_z8
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z7_idx ON osm_land_polygon_gen_z7 USING gist (geometry);
@@ -134,7 +134,7 @@ $$ LANGUAGE plpgsql;
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z6 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z6 AS
 (
-SELECT ST_Simplify(geometry, ZRes(8)) AS geometry, fid
+SELECT ST_MakeValid(ST_Simplify(geometry, ZRes(8))) AS geometry, fid
 FROM osm_land_polygon_gen_z7
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z6_idx ON osm_land_polygon_gen_z6 USING gist (geometry);
