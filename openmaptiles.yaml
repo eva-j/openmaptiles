@@ -1,27 +1,30 @@
 tileset:
   layers:
-    - layers/water/water.yaml
-    - layers/waterway/waterway.yaml
-    - layers/landcover/landcover.yaml
-    - layers/landuse/landuse.yaml
-    - layers/mountain_peak/mountain_peak.yaml
-    - layers/park/park.yaml
-    - layers/boundary/boundary.yaml
-    - layers/aeroway/aeroway.yaml
-    - layers/transportation/transportation.yaml
-    - layers/building/building.yaml
-    - layers/water_name/water_name.yaml
-    - layers/transportation_name/transportation_name.yaml
-    - layers/place/place.yaml
-    - layers/housenumber/housenumber.yaml
-    - layers/poi/poi.yaml
-    - layers/aerodrome_label/aerodrome_label.yaml
-  name: OpenMapTiles
-  version: 3.12.0
-  id: openmaptiles
-  description: "A tileset showcasing all layers in OpenMapTiles. https://openmaptiles.org"
-  attribution: '<a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+    - layers/land/land.yaml
+      #    - layers/water/water.yaml
+      #    - layers/waterway/waterway.yaml
+      #    - layers/landcover/landcover.yaml
+      #    - layers/landuse/landuse.yaml
+      #    - layers/mountain_peak/mountain_peak.yaml
+      #    - layers/park/park.yaml
+      #    - layers/boundary/boundary.yaml
+      #    - layers/aeroway/aeroway.yaml
+      #    - layers/transportation/transportation.yaml
+      #    - layers/building/building.yaml
+      #    - layers/water_name/water_name.yaml
+      #    - layers/transportation_name/transportation_name.yaml
+      #    - layers/place/place.yaml
+      #    - layers/housenumber/housenumber.yaml
+      #    - layers/poi/poi.yaml
+      #    - layers/aerodrome_label/aerodrome_label.yaml
+  name: Land polygons
+  version: 1.0
+  id: land
+  description: "A tileset showcasing land polygons - complement of water layer from OpenMapTiles. https://maptiler.com/cloud"
+  attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+  #center: [10.0,48.0,5]
   center: [-12.2168, 28.6135, 4]
+  #bounds: [5.79,45.78,17.28,54.99]
   bounds: [-180.0,-85.0511,180.0,85.0511]
   maxzoom: 14
   minzoom: 0
