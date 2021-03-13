@@ -1,19 +1,5 @@
 -- ne_10m_land
 
-ALTER TABLE ne_10m_land ADD COLUMN IF NOT EXISTS fid SERIAL;
-
--- Antarctica polygon is not valid, ST_MakeValid doesn't help
--- etldoc:  ne_10m_land ->  ne_10m_land_invalid
-DROP VIEW IF EXISTS ne_10m_land_invalid CASCADE;
-CREATE VIEW ne_10m_land_invalid AS
-(
-SELECT fid,
-       geometry,
-       'land'::text AS class
-FROM ne_10m_land
-WHERE NOT ST_IsValid(geometry)
-    );
-
 -- etldoc:  ne_10m_land ->  ne_10m_land_gen_z5
 DROP MATERIALIZED VIEW IF EXISTS ne_10m_land_gen_z5 CASCADE;
 CREATE MATERIALIZED VIEW ne_10m_land_gen_z5 AS
@@ -64,24 +50,13 @@ CREATE INDEX IF NOT EXISTS ne_50m_land_gen_z2_idx ON ne_50m_land_gen_z2 USING gi
 
 -- ne_110m_land
 
--- Antarctica polygon is not valid, ST_MakeValid doesn't help
--- etldoc:  ne_110m_land ->  ne_110m_land_invalid
-DROP VIEW IF EXISTS ne_110m_land_invalid CASCADE;
-CREATE VIEW ne_110m_land_invalid AS
-(
-SELECT ogc_fid,
-       geometry,
-       'land'::text AS class
-FROM ne_110m_land
-WHERE NOT ST_IsValid(geometry)
-    );
-
 -- etldoc:  ne_110m_land ->  ne_110m_land_gen_z1
 DROP MATERIALIZED VIEW IF EXISTS ne_110m_land_gen_z1 CASCADE;
 CREATE MATERIALIZED VIEW ne_110m_land_gen_z1 AS
+--CREATE OR REPLACE TABLE ne_110m_land_gen_z1 AS
 (
 SELECT ogc_fid,
-       ST_Simplify(geometry, ZRes(3)) AS geometry,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(3))) AS geometry,
        'land'::text AS class
 FROM ne_110m_land
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
@@ -90,9 +65,10 @@ CREATE INDEX IF NOT EXISTS ne_110m_land_gen_z1_idx ON ne_110m_land_gen_z1 USING 
 -- etldoc:  ne_110m_land_gen_z1 ->  ne_110m_land_gen_z0
 DROP MATERIALIZED VIEW IF EXISTS ne_110m_land_gen_z0 CASCADE;
 CREATE MATERIALIZED VIEW ne_110m_land_gen_z0 AS
+--CREATE OR REPLACE TABLE ne_110m_land_gen_z0 AS
 (
 SELECT ogc_fid,
-       ST_Simplify(geometry, ZRes(2)) AS geometry,
+       ST_MakeValid(ST_Simplify(geometry, ZRes(2))) AS geometry,
        class
 FROM ne_110m_land_gen_z1
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
@@ -102,7 +78,6 @@ CREATE INDEX IF NOT EXISTS ne_110m_land_gen_z0_idx ON ne_110m_land_gen_z0 USING 
 
 -- etldoc:  ne_110m_land_gen_z0 ->  land_z0
 -- etldoc:  ne_110m_lakes_gen_z0 ->  land_z0
--- etldoc:  ne_110m_land_invalid ->  land_z0
 CREATE OR REPLACE VIEW land_z0 AS
 (
 WITH temp AS
@@ -111,16 +86,13 @@ WITH temp AS
     FROM ne_110m_land_gen_z0 l JOIN ne_110m_lakes_gen_z0 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.ogc_fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_110m_land_gen_z0 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
-UNION ALL
-SELECT geometry, class FROM ne_110m_land_invalid
     );
 
 -- etldoc:  ne_110m_land_gen_z1 ->  land_z1
 -- etldoc:  ne_110m_lakes_gen_z1 ->  land_z1
--- etldoc:  ne_110m_land_invalid ->  land_z1
 CREATE OR REPLACE VIEW land_z1 AS
 (
 WITH temp AS
@@ -129,11 +101,9 @@ WITH temp AS
     FROM ne_110m_land_gen_z1 l JOIN ne_110m_lakes_gen_z1 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.ogc_fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_110m_land_gen_z1 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
-UNION ALL
-SELECT geometry, class FROM ne_110m_land_invalid
     );
 
 -- etldoc:  ne_50m_land_gen_z2 ->  land_z2
@@ -146,7 +116,7 @@ WITH temp AS
     FROM ne_50m_land_gen_z2 l JOIN ne_50m_lakes_gen_z2 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.ogc_fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_50m_land_gen_z2 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
@@ -161,7 +131,7 @@ WITH temp AS
     FROM ne_50m_land_gen_z3 l JOIN ne_50m_lakes_gen_z3 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.ogc_fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_50m_land_gen_z3 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
@@ -177,14 +147,13 @@ WITH temp AS
     WHERE ST_GeometryType(w.geometry) IN ('ST_MultiPolygon','ST_Polygon')
     GROUP BY l.ogc_fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_50m_land_gen_z4 l LEFT JOIN temp t ON l.ogc_fid = t.ogc_fid
     );
 
 -- etldoc:  ne_10m_land_gen_z5 ->  land_z5
 -- etldoc:  ne_10m_lakes_gen_z5 ->  land_z5
--- etldoc:  ne_10m_land_invalid ->  land_z5
 CREATE OR REPLACE VIEW land_z5 AS
 (
 WITH temp AS
@@ -194,11 +163,9 @@ WITH temp AS
     WHERE ST_GeometryType(w.geometry) IN ('ST_MultiPolygon','ST_Polygon')
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        l.class
 FROM ne_10m_land_gen_z5 l LEFT JOIN temp t ON l.fid = t.fid
-UNION ALL
-SELECT geometry, class FROM ne_10m_land_invalid
     );
 
 -- etldoc:  osm_land_polygon_gen_z6 ->  land_z6
@@ -211,7 +178,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z6 l JOIN osm_water_polygon_gen_z6 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z6 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -226,7 +193,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z7 l JOIN osm_water_polygon_gen_z7 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z7 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -241,7 +208,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z8 l JOIN osm_water_polygon_gen_z8 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z8 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -256,7 +223,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z9 l JOIN osm_water_polygon_gen_z9 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z9 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -271,7 +238,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z10 l JOIN osm_water_polygon_gen_z10 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z10 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -286,7 +253,7 @@ WITH temp AS
     FROM osm_land_polygon_gen_z11 l JOIN osm_water_polygon_gen_z11 w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon_gen_z11 l LEFT JOIN temp t ON l.fid = t.fid
     );
@@ -301,7 +268,7 @@ WITH temp AS
     FROM osm_land_polygon l JOIN osm_water_polygon w ON ST_Intersects(w.geometry, l.geometry)
     GROUP BY l.fid
     )
-SELECT ST_Difference(l.geometry, COALESCE(t.geometry, 'GEOMETRYCOLLECTION EMPTY'::geometry)) AS geometry,
+SELECT ST_Difference(l.geometry, COALESCE(t.geometry, ST_SetSRID('GEOMETRYCOLLECTION EMPTY'::geometry, 3857))) AS geometry,
        'land'::text AS class
 FROM osm_land_polygon l LEFT JOIN temp t ON l.fid = t.fid
     );

@@ -20,15 +20,9 @@
 -- --Drop data from original table but keep table as `CREATE TABLE IF NOT EXISTS` still test if query is valid
 -- --TRUNCATE TABLE osm_land_polygon;
 
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z11 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
+
+ALTER TABLE osm_land_polygon ADD COLUMN IF NOT EXISTS fid SERIAL;
+
 
 -- etldoc: osm_land_polygon -> osm_land_polygon_gen_z11
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z11 CASCADE;
@@ -40,16 +34,6 @@ FROM osm_land_polygon
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z11_idx ON osm_land_polygon_gen_z11 USING gist (geometry);
 
 
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z10 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
-
 -- etldoc: osm_land_polygon_gen_z11 -> osm_land_polygon_gen_z10
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z10 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z10 AS
@@ -59,16 +43,6 @@ FROM osm_land_polygon_gen_z11
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z10_idx ON osm_land_polygon_gen_z10 USING gist (geometry);
 
-
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z9 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
 
 -- etldoc: osm_land_polygon_gen_z10 -> osm_land_polygon_gen_z9
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z9 CASCADE;
@@ -80,16 +54,6 @@ FROM osm_land_polygon_gen_z10
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z9_idx ON osm_land_polygon_gen_z9 USING gist (geometry);
 
 
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z8 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
-
 -- etldoc: osm_land_polygon_gen_z9 -> osm_land_polygon_gen_z8
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z8 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z8 AS
@@ -100,16 +64,6 @@ FROM osm_land_polygon_gen_z9
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z8_idx ON osm_land_polygon_gen_z8 USING gist (geometry);
 
 
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z7 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
-
 -- etldoc: osm_land_polygon_gen_z8 -> osm_land_polygon_gen_z7
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z7 CASCADE;
 CREATE MATERIALIZED VIEW osm_land_polygon_gen_z7 AS
@@ -119,16 +73,6 @@ FROM osm_land_polygon_gen_z8
     ) /* DELAY_MATERIALIZED_VIEW_CREATION */ ;
 CREATE INDEX IF NOT EXISTS osm_land_polygon_gen_z7_idx ON osm_land_polygon_gen_z7 USING gist (geometry);
 
-
--- This statement can be deleted after the water importer image stops creating this object as a table
-DO
-$$
-    BEGIN
-        DROP TABLE IF EXISTS osm_land_polygon_gen_z6 CASCADE;
-    EXCEPTION
-        WHEN wrong_object_type THEN
-    END;
-$$ LANGUAGE plpgsql;
 
 -- etldoc: osm_land_polygon_gen_z7 -> osm_land_polygon_gen_z6
 DROP MATERIALIZED VIEW IF EXISTS osm_land_polygon_gen_z6 CASCADE;
