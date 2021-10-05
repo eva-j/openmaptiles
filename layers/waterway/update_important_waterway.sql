@@ -18,12 +18,14 @@ SELECT (ST_Dump(geometry)).geom AS geometry,
        name,
        name_en,
        name_de,
+       width,
        tags
 FROM (
          SELECT ST_LineMerge(ST_Union(geometry)) AS geometry,
                 name,
                 name_en,
                 name_de,
+                MAX(width) AS width,
                 slice_language_tags(tags) AS tags
          FROM osm_waterway_linestring
          WHERE name <> ''
@@ -41,6 +43,7 @@ SELECT ST_Simplify(geometry, ZRes(12)) AS geometry,
        name,
        name_en,
        name_de,
+       width,
        tags
 FROM osm_important_waterway_linestring
 WHERE ST_Length(geometry) > 1000
@@ -55,6 +58,7 @@ SELECT ST_Simplify(geometry, ZRes(11)) AS geometry,
        name,
        name_en,
        name_de,
+       width,
        tags
 FROM osm_important_waterway_linestring_gen_z11
 WHERE ST_Length(geometry) > 4000
@@ -69,11 +73,42 @@ SELECT ST_Simplify(geometry, ZRes(10)) AS geometry,
        name,
        name_en,
        name_de,
+       width,
        tags
 FROM osm_important_waterway_linestring_gen_z10
-WHERE ST_Length(geometry) > 8000
+WHERE ST_Length(geometry) > 8000 OR width > 5
     );
 CREATE INDEX IF NOT EXISTS osm_important_waterway_linestring_gen_z9_geometry_idx ON osm_important_waterway_linestring_gen_z9 USING gist (geometry);
+
+-- etldoc: osm_important_waterway_linestring_gen_z9 -> osm_important_waterway_linestring_gen_z8
+DROP MATERIALIZED VIEW IF EXISTS osm_important_waterway_linestring_gen_z8 CASCADE;
+CREATE MATERIALIZED VIEW osm_important_waterway_linestring_gen_z8 AS
+(
+SELECT ST_Simplify(geometry, ZRes(10)) AS geometry,
+       name,
+       name_en,
+       name_de,
+       width,
+       tags
+FROM osm_important_waterway_linestring_gen_z9
+WHERE ST_Length(geometry) > 16000 OR width > 10
+    );
+CREATE INDEX IF NOT EXISTS osm_important_waterway_linestring_gen_z8_geometry_idx ON osm_important_waterway_linestring_gen_z8 USING gist (geometry);
+
+-- etldoc: osm_important_waterway_linestring_gen_z8 -> osm_important_waterway_linestring_gen_z7
+DROP MATERIALIZED VIEW IF EXISTS osm_important_waterway_linestring_gen_z7 CASCADE;
+CREATE MATERIALIZED VIEW osm_important_waterway_linestring_gen_z7 AS
+(
+SELECT ST_Simplify(geometry, ZRes(10)) AS geometry,
+       name,
+       name_en,
+       name_de,
+       width,
+       tags
+FROM osm_important_waterway_linestring_gen_z8
+WHERE ST_Length(geometry) > 32000 OR width > 20
+    );
+CREATE INDEX IF NOT EXISTS osm_important_waterway_linestring_gen_z7_geometry_idx ON osm_important_waterway_linestring_gen_z7 USING gist (geometry);
 
 -- Handle updates
 
@@ -163,7 +198,7 @@ BEGIN
            name,
            name_en,
            name_de,
-           tags
+           tagsOpenMapTiles
     FROM (
              SELECT ST_LineMerge(ST_Union(geometry)) AS geometry,
                     w.name,
@@ -189,6 +224,12 @@ BEGIN
 
     -- REFRESH osm_important_waterway_linestring_gen_z9
     REFRESH MATERIALIZED VIEW osm_important_waterway_linestring_gen_z9;
+
+    -- REFRESH osm_important_waterway_linestring_gen_z8
+    REFRESH MATERIALIZED VIEW osm_important_waterway_linestring_gen_z8;
+
+    -- REFRESH osm_important_waterway_linestring_gen_z7
+    REFRESH MATERIALIZED VIEW osm_important_waterway_linestring_gen_z7;
 
     DROP TABLE changes_compact;
     -- noinspection SqlWithoutWhere

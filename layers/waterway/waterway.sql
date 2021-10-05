@@ -176,34 +176,64 @@ SELECT geometry,
 FROM ne_10m_rivers_lake_centerlines_gen_z6
     );
 
--- etldoc: ne_10m_rivers_lake_centerlines_gen_z7 ->  waterway_z7
+-- -- etldoc: ne_10m_rivers_lake_centerlines_gen_z7 ->  waterway_z7
+-- CREATE OR REPLACE VIEW waterway_z7 AS
+-- (
+-- SELECT geometry,
+--        class,
+--        name,
+--        name_en,
+--        name_de,
+--        tags,
+--        is_bridge,
+--        is_tunnel,
+--        is_intermittent
+-- FROM ne_10m_rivers_lake_centerlines_gen_z7
+--     );
+-- 
+-- -- etldoc: ne_10m_rivers_lake_centerlines_gen_z8 ->  waterway_z8
+-- CREATE OR REPLACE VIEW waterway_z8 AS
+-- (
+-- SELECT geometry,
+--        class,
+--        name,
+--        name_en,
+--        name_de,
+--        tags,
+--        is_bridge,
+--        is_tunnel,
+--        is_intermittent
+-- FROM ne_10m_rivers_lake_centerlines_gen_z8
+--     );
+
+-- etldoc: osm_important_waterway_linestring_gen_z7 ->  waterway_z7
 CREATE OR REPLACE VIEW waterway_z7 AS
 (
 SELECT geometry,
-       class,
+       'river'::text AS class,
        name,
        name_en,
        name_de,
        tags,
-       is_bridge,
-       is_tunnel,
-       is_intermittent
-FROM ne_10m_rivers_lake_centerlines_gen_z7
+       NULL::boolean AS is_bridge,
+       NULL::boolean AS is_tunnel,
+       NULL::boolean AS is_intermittent
+FROM osm_important_waterway_linestring_gen_z7
     );
 
-    -- etldoc: ne_10m_rivers_lake_centerlines_gen_z8 ->  waterway_z8
+-- etldoc: osm_important_waterway_linestring_gen_z8 ->  waterway_z8
 CREATE OR REPLACE VIEW waterway_z8 AS
 (
 SELECT geometry,
-       class,
+       'river'::text AS class,
        name,
        name_en,
        name_de,
        tags,
-       is_bridge,
-       is_tunnel,
-       is_intermittent
-FROM ne_10m_rivers_lake_centerlines_gen_z8
+       NULL::boolean AS is_bridge,
+       NULL::boolean AS is_tunnel,
+       NULL::boolean AS is_intermittent
+FROM osm_important_waterway_linestring_gen_z8
     );
 
 -- etldoc: osm_important_waterway_linestring_gen_z9 ->  waterway_z9
